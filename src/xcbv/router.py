@@ -3,7 +3,6 @@ from .route import Route
 
 
 class Router(object):
-    path = None
     parent = None
     children = []
 
@@ -20,7 +19,15 @@ class Router(object):
             return self.get_namespace()
         if attr == 'app_name':
             return self.get_app_name()
+        if attr == 'path':
+            return self.get_path()
         return object.__getattribute__(self, attr)
+
+    def get_path(self):
+        model = getattr(self, 'model', None)
+        if model:
+            return model._meta.model_name + '/'
+        return ''
 
     def get_namespace(self):
         app_name = getattr(self, 'app_name', None)

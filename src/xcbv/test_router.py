@@ -20,6 +20,16 @@ def test_router_namespace():
     assert r.namespace == 'full'
 
 
+def test_router_path_empty():
+    r = Router(namespace='full')
+    assert r.path == ''
+
+
+def test_router_path_specified():
+    r = Router(path='lol/', namespace='full')
+    assert r.path == 'lol/'
+
+
 def test_route_inherits_namespace():
     r = Router(Route, namespace='full')
     assert r.children[0].namespace == 'full'
@@ -94,3 +104,17 @@ def test_nested_wraper_router_overriding_app_name():
     assert r.children[0].namespace == 'person'
     assert r.children[0].children[0].app_name == 'lol'
     assert r.children[0].children[0].namespace == 'pet'
+
+
+def test_router_model_path():
+    r = Router(model=Person)
+    assert r.path == 'person/'
+
+    r = Router(model=Person, path='')
+    assert r.path == ''
+
+
+def test_model_router_route_path():
+    r = Router(Router(model=Pet), model=Person)
+    assert r.path == 'person/'
+    assert r.children[0].path == 'pet/'

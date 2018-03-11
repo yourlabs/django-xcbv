@@ -10,3 +10,7 @@ class RouterNamespaceNotResolvable(xcbvException):
 
 class NamespaceCollision(xcbvException):
     pass
+
+
+class RoutePathNotResolvable(xcbvException):
+    pass

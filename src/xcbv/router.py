@@ -1,3 +1,6 @@
+from django.urls import URLResolver
+from django.urls.resolvers import RoutePattern
+
 from .exceptions import *
 from .route import Route
 
@@ -71,3 +74,15 @@ class Router(object):
             if route.namespace in namespaces:
                 raise NamespaceCollision()
             namespaces.append(route.namespace)
+
+    @property
+    def urlpatterns(self):
+        return [route.urlpattern() for route in self.routes]
+
+    def urlpattern(self):
+        return URLResolver(
+            RoutePattern(self.path, self.namespace),
+            self,
+            app_name=self.app_name,
+            namespace=self.namespace,
+        )

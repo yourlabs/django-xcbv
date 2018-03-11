@@ -21,6 +21,9 @@ INSTALLED_APPS = (
     'xcbv',
 
     'xcbv_examples.full',
+
+    # optional but nice
+    'django_extensions',
 )
 
 XCBV = dict(

@@ -6,7 +6,6 @@ workflows:
     jobs:
       - py-qa
       - docs
-      - py27-dj111
       - py36-dj20
 
 jobs:
@@ -66,27 +65,6 @@ jobs:
         command: |
           ~/.local/bin/tox -e py36-dj20
           PATH=.tox/py36-dj20/bin:$PATH codecov -e $TOXENV
-
-  py27-dj111:
-    docker:
-    - image: circleci/python:2.7
-    working_directory: ~/repo
-    steps:
-    - checkout
-    - restore_cache:
-        keys:
-        - test-dependencies-{{ checksum "tox.ini" }}
-    - run:
-        name: Tox environment setup
-        command: pip install --user tox && ~/.local/bin/tox -r -e py27-dj111 --notest
-    - save_cache:
-        paths: [~/.local, ~/.cache/pip]
-        key: test-dependencies-{{ checksum "tox.ini" }}
-    - run:
-        name: TEST tox -e py27-dj111
-        command: |
-          ~/.local/bin/tox -e py27-dj111
-          PATH=.tox/py27-dj111/bin:$PATH codecov -e $TOXENV
 
   js-qa:
     docker:

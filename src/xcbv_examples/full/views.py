@@ -5,18 +5,10 @@ from .models import Person, Pet, Toy
 
 class PetRouter(xcbv.Router):
     model = Pet
-    children = [
+    routes = [
         xcbv.ListView,
-        xcbv.CreateView,
-        xcbv.DetailView,
-        xcbv.ListView,
-        xcbv.DetailView,
-        xcbv.Router.factory(
+        xcbv.Router(
             xcbv.ListView,
-            xcbv.CreateView,
-            xcbv.DetailView,
-            xcbv.ListView,
-            xcbv.DetailView,
             model=Toy,
         )
     ]
@@ -25,12 +17,12 @@ class PetRouter(xcbv.Router):
 router = xcbv.Router(
     app_name='full',
     # namespace = full
-    children=[
+    routes=[
         xcbv.Router(
             xcbv.ListView,
             xcbv.CreateView,
-            xcbv.DetailView,
-            xcbv.ListView,
+            xcbv.UpdateView,
+            xcbv.DeleteView,
             xcbv.DetailView,
             PetRouter,
             model=Person,

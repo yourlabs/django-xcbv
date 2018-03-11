@@ -1,6 +1,9 @@
-from .exceptions import *
-
 import six
+
+from django.urls import URLPattern
+from django.urls.resolvers import RoutePattern
+
+from .exceptions import *
 
 
 class RouteMetaclass(type):
@@ -58,6 +61,14 @@ class RouteMetaclass(type):
             return cls.name + '/'
         except RouteNameNotResolvable:
             raise RoutePathNotResolvable()
+
+    @property
+    def urlpattern(cls):
+        return URLPattern(
+            RoutePattern(cls.path, cls.namespace),
+            cls.as_view(),
+            name=cls.name,
+        )
 
 
 @six.add_metaclass(RouteMetaclass)

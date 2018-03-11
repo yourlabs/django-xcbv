@@ -3,6 +3,7 @@ from .route import Route
 
 
 class Router(object):
+    path = None
     parent = None
     children = []
 
@@ -10,17 +11,34 @@ class Router(object):
         for key, value in state.items():
             setattr(self, key, value)
 
-        self.namespace_init()
+        # Ensure namespace resolves or crash
+        self.namespace
         self.children_init(children)
 
-    def namespace_init(self):
-        namespace = getattr(self, 'namespace', None)
-        if not namespace:
-            app_name = getattr(self, 'app_name', None)
-            if app_name:
-                self.namespace = app_name
-            else:
-                raise RouterNamespaceNotResolvable()
+    def __getattr__(self, attr):
+        if attr == 'namespace':
+            return self.get_namespace()
+        if attr == 'app_name':
+            return self.get_app_name()
+        return object.__getattribute__(self, attr)
+
+    def get_namespace(self):
+        app_name = getattr(self, 'app_name', None)
+        model = getattr(self, 'model', None)
+        if model:
+            return model._meta.model_name
+        elif app_name:
+            return app_name
+        else:
+            raise RouterNamespaceNotResolvable()
+
+    def get_app_name(self):
+        if self.parent:
+            return self.parent.app_name
+        else:
+            model = getattr(self, 'model', None)
+            if model:
+                return model._meta.app_label
 
     def children_init(self, children):
         children = list(self.children) + list(children)

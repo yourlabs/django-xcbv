@@ -1,4 +1,5 @@
 from xcbv.shortcuts import *
+from xcbv_examples.full.models import Person
 
 import pytest
 
@@ -68,3 +69,9 @@ def test_router_route_app_name():
     r = Router(Route, app_name='a')
     assert r.children[0].namespace == 'a'
     assert r.children[0].app_name == 'a'
+
+
+def test_router_gets_app_name_and_namespace_from_model():
+    r = Router(model=Person)
+    assert r.app_name == 'full'
+    assert r.namespace == 'person'

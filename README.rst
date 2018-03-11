@@ -23,41 +23,45 @@ Extracted from CRUDLFA+, re DDD'd, under TDD.
 .. code-block:: python
 
     # yourapp.views
-    urlpatterns = xcbv.View(
-        menus=('global', 'footer'),
-        views=(
-            xcbv.ModelView.factory(
-                model=YourModel,
-                # updates views.list, views.update
-                children=xcbv.ModelView.views.update(
-                    YourListView.factory(
-                        # by default only staff sees new views, this opens for all
-                        allows=lambda self: True
-                    ),
-                    YourUpdateView.factory(
-                        # could be set here or inside the view
-                        path='specialupdate/<slug0>/<slug1>',
-                    ),
-                    YourDetailView.factory(
-                        # just adding a sub object list view inside URL and
-                        # permission tree like a Poney, is this going to be a
-                        # list of child models from the above ModelView model ?
-                        views=xcbv.ModelListView(
-                            model=YourChildModel,
-                        )
-                    )
-                ),
-                icon="fa-love",
-            ),
-            YourOtherView,
+    urlpatterns = xcbv.Router(
+        xcbv.TemplateView.factory(
+            name='index', # default /index to index.html
         ),
-        # some default overrides
+        YourOtherView,
+        xcbv.Router(
+            YourListView.factory(
+                # by default only staff sees new views, this opens for all
+                allows=lambda self: True
+            ),
+            YourUpdateView.factory(
+                # could be set here or inside the view
+                path='specialupdate/<slug0>/<slug1>',
+            ),
+            ObjectFormView.factory(
+                form_class=YourCustomForm
+                key='custom',
+            ),
+            YourDetailView.factory(
+                # just adding a sub object list view inside URL and
+                # permission tree like a Poney, is this going to be a
+                # list of child models from the above ModelView model ?
+                views=xcbv.ListView(
+                    model=YourChildModel,
+                )
+            )
+            # the above should replace CRUD views defined in setting
+            # XCBV['MODELVIEW_DEFAULT_CHILDREN'] and add object action
+            # "custom"
+            model=YourModel,
+            menus=('global', 'footer'),
+            icon="fa-love",
+        ),
+        # Router always takes a namespace or class (ie. model) arg
         namespace='yourapp',
-        prefix='you/',
-    ).as_urlpatterns()
+    ).urlpatterns()
 
     # yourproject.urls
-    urlpatterns += path('yourmodel/', yourapp.views.router.as_urlpatterns())
+    urlpatterns += path('yourmodel/', yourapp.views.router.urlpatterns())
 
     # in templates
     # menu for navigation

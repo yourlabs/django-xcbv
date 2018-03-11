@@ -1,5 +1,5 @@
 from xcbv.shortcuts import *
-from xcbv_examples.full.models import Person
+from xcbv_examples.full.models import Person, Pet
 
 import pytest
 
@@ -73,5 +73,24 @@ def test_router_route_app_name():
 
 def test_router_gets_app_name_and_namespace_from_model():
     r = Router(model=Person)
+    # would be resolvable both with app_name and namespace
     assert r.app_name == 'full'
     assert r.namespace == 'person'
+
+
+def test_nested_model_router():
+    r = Router(Router(model=Pet), model=Person)
+    assert r.app_name == 'full'
+    assert r.namespace == 'person'
+    assert r.children[0].app_name == 'full'
+    assert r.children[0].namespace == 'pet'
+
+
+def test_nested_wraper_router_overriding_app_name():
+    r = Router(Router(Router(model=Pet), model=Person), app_name='lol')
+    assert r.app_name == 'lol'
+    assert r.namespace == 'lol'
+    assert r.children[0].app_name == 'lol'
+    assert r.children[0].namespace == 'person'
+    assert r.children[0].children[0].app_name == 'lol'
+    assert r.children[0].children[0].namespace == 'pet'

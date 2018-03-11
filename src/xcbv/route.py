@@ -19,6 +19,11 @@ class RouteMetaclass(type):
             return cls.get_name()
         if attr == 'path':
             return cls.get_path()
+        if attr == 'model':
+            try:
+                return cls.parent.model
+            except AttributeError:
+                return None
         raise AttributeError(attr)
 
     def get_name(cls):
@@ -27,6 +32,12 @@ class RouteMetaclass(type):
             name = name[:-4]
         elif name.endswith('route'):
             name = name[:-5]
+
+        if cls.model:
+            model_name = cls.model._meta.model_name.lower()
+            if name.startswith(model_name):
+                name = name[len(model_name):]
+
         if not name:
             raise RouteNameNotResolvable()
         return name

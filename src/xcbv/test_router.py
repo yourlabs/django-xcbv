@@ -32,7 +32,7 @@ def test_router_path_specified():
 
 def test_route_inherits_namespace():
     r = Router(Route, namespace='full')
-    assert r.children[0].namespace == 'full'
+    assert r.routes[0].namespace == 'full'
 
 
 def test_router_requires_namespace():
@@ -43,7 +43,7 @@ def test_router_requires_namespace():
 def test_router_override_parent_namespace():
     r = Router(Router(namespace='b'), namespace='a')
     assert r.namespace == 'a'
-    assert r.children[0].namespace == 'b'
+    assert r.routes[0].namespace == 'b'
 
 
 def test_router_with_namespace_as_classattr():
@@ -52,15 +52,15 @@ def test_router_with_namespace_as_classattr():
 
     r = Test(Test)
     assert r.namespace == 'b'
-    assert r.children[0].namespace == 'b'
+    assert r.routes[0].namespace == 'b'
 
     r = Test(Test, namespace='a')
     assert r.namespace == 'a'
-    assert r.children[0].namespace == 'b'
+    assert r.routes[0].namespace == 'b'
 
     r = Test(Test(namespace='a'))
     assert r.namespace == 'b'
-    assert r.children[0].namespace == 'a'
+    assert r.routes[0].namespace == 'a'
 
 
 def test_router_namespace_clash():
@@ -77,8 +77,8 @@ def test_router_with_app_name():
 
 def test_router_route_app_name():
     r = Router(Route, app_name='a')
-    assert r.children[0].namespace == 'a'
-    assert r.children[0].app_name == 'a'
+    assert r.routes[0].namespace == 'a'
+    assert r.routes[0].app_name == 'a'
 
 
 def test_router_gets_app_name_and_namespace_from_model():
@@ -92,18 +92,18 @@ def test_nested_model_router():
     r = Router(Router(model=Pet), model=Person)
     assert r.app_name == 'full'
     assert r.namespace == 'person'
-    assert r.children[0].app_name == 'full'
-    assert r.children[0].namespace == 'pet'
+    assert r.routes[0].app_name == 'full'
+    assert r.routes[0].namespace == 'pet'
 
 
 def test_nested_wraper_router_overriding_app_name():
     r = Router(Router(Router(model=Pet), model=Person), app_name='lol')
     assert r.app_name == 'lol'
     assert r.namespace == 'lol'
-    assert r.children[0].app_name == 'lol'
-    assert r.children[0].namespace == 'person'
-    assert r.children[0].children[0].app_name == 'lol'
-    assert r.children[0].children[0].namespace == 'pet'
+    assert r.routes[0].app_name == 'lol'
+    assert r.routes[0].namespace == 'person'
+    assert r.routes[0].routes[0].app_name == 'lol'
+    assert r.routes[0].routes[0].namespace == 'pet'
 
 
 def test_router_model_path():
@@ -117,4 +117,9 @@ def test_router_model_path():
 def test_model_router_route_path():
     r = Router(Router(model=Pet), model=Person)
     assert r.path == 'person/'
-    assert r.children[0].path == 'pet/'
+    assert r.routes[0].path == 'pet/'
+
+
+def test_model_router_inherits_model():
+    r = Router(Router(namespace='test'), model=Person)
+    assert r.routes[0].model == r.model == Person

@@ -4,15 +4,15 @@ from .route import Route
 
 class Router(object):
     parent = None
-    children = []
+    routes = []
 
-    def __init__(self, *children, **state):
+    def __init__(self, *routes, **state):
         for key, value in state.items():
             setattr(self, key, value)
 
         # Ensure namespace resolves or crash
         self.namespace
-        self.children_init(children)
+        self.routes_init(routes)
 
     def __getattr__(self, attr):
         if attr == 'namespace':
@@ -21,6 +21,10 @@ class Router(object):
             return self.get_app_name()
         if attr == 'path':
             return self.get_path()
+        if attr == 'model':
+            if self.parent:
+                return self.parent.model
+            return None
         return object.__getattribute__(self, attr)
 
     def get_path(self):
@@ -47,23 +51,23 @@ class Router(object):
             if model:
                 return model._meta.app_label
 
-    def children_init(self, children):
-        children = list(self.children) + list(children)
-        self.children = []
-        for child in children:
-            if isinstance(child, type):
-                if issubclass(child, Route):
-                    self.children.append(child.factory(parent=self))
-                elif issubclass(child, Router):
-                    self.children.append(child(parent=self))
-            elif isinstance(child, Router):
-                child.parent = self
-                self.children.append(child)
+    def routes_init(self, routes):
+        routes = list(self.routes) + list(routes)
+        self.routes = []
+        for route in routes:
+            if isinstance(route, type):
+                if issubclass(route, Route):
+                    self.routes.append(route.factory(parent=self))
+                elif issubclass(route, Router):
+                    self.routes.append(route(parent=self))
+            elif isinstance(route, Router):
+                route.parent = self
+                self.routes.append(route)
 
         namespaces = []
-        for child in self.children:
-            if not isinstance(child, Router):
+        for route in self.routes:
+            if not isinstance(route, Router):
                 continue
-            if child.namespace in namespaces:
+            if route.namespace in namespaces:
                 raise NamespaceCollision()
-            namespaces.append(child.namespace)
+            namespaces.append(route.namespace)

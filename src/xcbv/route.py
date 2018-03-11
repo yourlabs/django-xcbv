@@ -11,8 +11,8 @@ class RouteMetaclass(type):
         return type(name, (cls,), attributes)
 
     def __getattr__(cls, attr):
-        if attr == 'namespace' and cls.parent:
-            return cls.parent.namespace
+        if attr == 'namespace':
+            return cls.get_namespace()
         if attr == 'app_name' and cls.parent:
             return cls.parent.app_name
         if attr == 'name':
@@ -20,11 +20,16 @@ class RouteMetaclass(type):
         if attr == 'path':
             return cls.get_path()
         if attr == 'model':
-            try:
+            if cls.parent:
                 return cls.parent.model
-            except AttributeError:
-                return None
+            return None
         raise AttributeError(attr)
+
+    def get_namespace(cls):
+        if cls.parent:
+            return cls.parent.namespace
+        elif cls.model:
+            return cls.model._meta.model_name
 
     def get_name(cls):
         name = cls.__name__.lower()

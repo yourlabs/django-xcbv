@@ -1,3 +1,4 @@
+import six
 
 
 class RouteMetaclass(type):
@@ -15,5 +16,6 @@ class RouteMetaclass(type):
         return object.__getattr__(cls, attr)
 
 
-class Route(metaclass=RouteMetaclass):
+@six.add_metaclass(RouteMetaclass)
+class Route(object):
     pass

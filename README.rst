@@ -14,7 +14,7 @@ What it is
 
 - remove need of urls.py in favor of nested views,
 - nested security checking support,
-- take DRY to another level with nested views.
+- takes DRY to another level with view route parenting,
 - django can you generate a menu is: yes,
 - modern pattern for creating your own admin-like CRUD,
 

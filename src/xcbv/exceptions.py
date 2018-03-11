@@ -14,3 +14,7 @@ class NamespaceCollision(xcbvException):
 
 class RoutePathNotResolvable(xcbvException):
     pass
+
+
+class RouteNameNotResolvable(xcbvException):
+    pass

@@ -1,4 +1,4 @@
-from xcbv import xcbv
+from xcbv import shortcuts as xcbv
 
 from .models import Person, Pet, Toy
 

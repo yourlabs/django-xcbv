@@ -1,4 +1,4 @@
-from xcbv.xcbv import *
+from xcbv.shortcuts import *
 
 import pytest
 

@@ -20,6 +20,8 @@ What it is
 
 Extracted from CRUDLFA+, re DDD'd, under TDD.
 
+Target:
+
 .. code-block:: python
 
     # yourapp.views
@@ -29,26 +31,27 @@ Extracted from CRUDLFA+, re DDD'd, under TDD.
         ),
         YourOtherView,
         xcbv.Router(
-            YourListView.factory(
+            YourCreateView(url='/absolute/url'),
+            YourListView(
                 # by default only staff sees new views, this opens for all
                 allows=lambda self: True
             ),
-            YourUpdateView.factory(
+            YourUpdateView(
                 # could be set here or inside the view
                 path='specialupdate/<slug0>/<slug1>',
             ),
-            ObjectFormView.factory(
+            ObjectFormView(
                 form_class=YourCustomForm
                 key='custom',
             ),
-            YourDetailView.factory(
+            YourDetailView(
                 # just adding a sub object list view inside URL and
                 # permission tree like a Poney, is this going to be a
                 # list of child models from the above ModelView model ?
                 views=xcbv.ListView(
                     model=YourChildModel,
                 )
-            )
+            ),
             # the above should replace CRUD views defined in setting
             # XCBV['MODELVIEW_DEFAULT_CHILDREN'] and add object action
             # "custom"

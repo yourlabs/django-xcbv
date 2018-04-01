@@ -9,8 +9,9 @@ from .exceptions import *
 class RouteMetaclass(type):
     parent = None
 
-    def factory(cls, **attributes):
+    def factory(cls, *children, **attributes):
         name = cls.__name__
+        attributes['children'] = children
         return type(name, (cls,), attributes)
 
     def __getattr__(cls, attr):

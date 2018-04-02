@@ -2,7 +2,7 @@ from itertools import chain
 import six
 
 from django.views.generic import View
-from django.urls import URLPattern, URLResolver
+from django.urls import URLPattern, URLResolver, path
 from django.urls.resolvers import RegexPattern, RoutePattern
 
 from .exceptions import *
@@ -98,22 +98,57 @@ class RouteMetaclass(type):
 
     @property
     def urlpattern(cls):
-        return URLPattern(
-            RegexPattern('^' + cls.regex + '$', cls.namespace),
-            cls.as_view(),
-            name=cls.name,
+        return path(cls.regex, cls.as_view(), name=cls.name)
+
+    def urlpatterns(cls, with_self=True):
+        patterns = []
+
+        if with_self:
+            patterns.append(cls.urlpattern)
+
+        sub_patterns = []
+        for r in cls.routes:
+            sub_patterns += r.urlpatterns()
+
+        patterns.append(path(cls.regex, (
+            [path('/', (sub_patterns, cls.app_name, cls.name))],
+            cls.app_name,
+            cls.name
+        )))
+        print(patterns)
+        return patterns
+
+    def urlinclude(cls, prefix=None):
+        urlpatterns = [cls.urlpattern]
+        for route in cls.routes:
+            urlpatterns.append(route.urlpattern)
+            if route.routes:
+                urlpatterns.append(
+                    path(route.regex, ([r.urlpattern for r in route.routes],cls.app_name, route.namespace))
+                )
+        return path(
+            prefix or '',
+            (
+                urlpatterns,
+                cls.app_name,
+                cls.namespace,
+            )
         )
 
-    @property
-    def urlpatterns(cls):
-        return [cls.urlpattern] + [
-            r.factory(regex=cls.regex + '/' + r.regex).urlobject
-            for r in cls.routes
-        ]
-
-    def urlresolver(cls, prefix=None):
+    def urlresolver(cls):
+        print(cls.regex, cls.namespace)
+        return path(
+            cls.regex,
+            (
+                [
+                    path('', cls.as_view(), name=cls.name),
+                ],
+                cls.app_name,
+                cls.namespace
+            ),
+        )
         return URLResolver(
-            RegexPattern(prefix or '', cls.namespace),
+            RegexPattern(prefix or ''),
             cls,
             app_name=cls.app_name,
             namespace=cls.namespace,

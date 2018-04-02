@@ -26,6 +26,7 @@ INSTALLED_APPS = (
 
     # optional but nice
     'django_extensions',
+    'debug_toolbar',
 )
 
 XCBV = dict(
@@ -77,6 +78,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'collected')
 
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -99,3 +111,5 @@ LOGGING = {
         }
     },
 }
+
+INTERNAL_IPS = ('127.0.0.1',)

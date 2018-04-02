@@ -1,4 +1,4 @@
 # flake8: noqa: D101
-from xcbv_examples.full.views import router
+from xcbv_examples.full.views import PersonIndex
 
-urlpatterns = [router.urlpattern]
+urlpatterns = [PersonIndex.urlresolver()]

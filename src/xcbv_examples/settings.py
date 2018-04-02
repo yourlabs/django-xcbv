@@ -9,6 +9,8 @@ DEBUG = os.environ.get('DEBUG', True)
 ALLOWED_HOSTS = ['*']
 AUTH_PASSWORD_VALIDATORS = []
 
+SILENCED_SYSTEM_CHECKS = ['urls.W001']
+
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',

@@ -1,33 +1,43 @@
+from itertools import chain
 import six
 
-from django.urls import URLPattern
-from django.urls.resolvers import RoutePattern
+from django.views.generic import View
+from django.urls import URLPattern, URLResolver
+from django.urls.resolvers import RegexPattern, RoutePattern
 
 from .exceptions import *
 
 
 class RouteMetaclass(type):
     parent = None
+    routes = []
+    lazy_classproperties = [
+        'app_name',
+        'model',
+        'name',
+        'namespace',
+        'pattern',
+        'regex',
+    ]
 
-    def factory(cls, *children, **attributes):
+    def factory(cls, *routes, **attributes):
         name = cls.__name__
-        attributes['children'] = children
-        return type(name, (cls,), attributes)
+        model = attributes.get('model', None)
+        if model and model.__name__ not in name:
+            name = model.__name__ + name
+        cls = type(name, (cls,), attributes)
+        cls.routes_init(routes)
+        return cls
 
     def __getattr__(cls, attr):
-        if attr == 'namespace':
-            return cls.get_namespace()
-        if attr == 'app_name':
-            return cls.get_app_name()
-        if attr == 'name':
-            return cls.get_name()
-        if attr == 'path':
-            return cls.get_path()
-        if attr == 'model':
-            if cls.parent:
-                return cls.parent.model
-            return None
+        if attr in cls.lazy_classproperties:
+            return getattr(cls, 'get_' + attr)()
         raise AttributeError(attr)
+
+    def get_model(cls):
+        if cls.parent:
+            return cls.parent.model
+        return None
 
     def get_app_name(cls):
         if cls.parent:
@@ -36,9 +46,7 @@ class RouteMetaclass(type):
             return cls.model._meta.app_label
 
     def get_namespace(cls):
-        if cls.parent:
-            return cls.parent.namespace
-        elif cls.model:
+        if cls.model:
             return cls.model._meta.model_name
 
     def get_name(cls):
@@ -53,25 +61,72 @@ class RouteMetaclass(type):
             if name.startswith(model_name):
                 name = name[len(model_name):]
 
-        if not name:
-            raise RouteNameNotResolvable()
-        return name
+        if not name and cls.model:
+            name = cls.model._meta.model_name
+
+        return name or None
+
+    def get_regex(cls):
+        r = ''
+        if 'name' in dir(cls):
+            r += cls.name
+        elif cls.model:
+            r += cls.model._meta.model_name
+        else:
+            r += cls.name
+
+        return r
 
     def get_path(cls):
-        try:
-            return cls.name + '/'
-        except RouteNameNotResolvable:
-            raise RoutePathNotResolvable()
+        return None
+
+    def routes_init(cls, routes):
+        cls.routes = [
+            route.factory(parent=cls)
+            for route in list(cls.routes) + list(routes)
+        ]
+
+        namespaces = []
+        for route in cls.routes:
+            if not route.namespace:
+                continue
+            if route.routes:
+                continue
+            if route.namespace in namespaces:
+                raise NamespaceCollision(route.namespace)
+            namespaces.append(route.namespace)
 
     @property
     def urlpattern(cls):
         return URLPattern(
-            RoutePattern(cls.path, cls.namespace),
+            RegexPattern('^' + cls.regex + '$', cls.namespace),
             cls.as_view(),
             name=cls.name,
         )
 
+    @property
+    def urlpatterns(cls):
+        return [cls.urlpattern] + [
+            r.factory(regex=cls.regex + '/' + r.regex).urlobject
+            for r in cls.routes
+        ]
+
+    def urlresolver(cls, prefix=None):
+        return URLResolver(
+            RegexPattern(prefix or '', cls.namespace),
+            cls,
+            app_name=cls.app_name,
+            namespace=cls.namespace,
+        )
+
+    @property
+    def urlobject(cls):
+        if cls.routes:
+            return cls.urlresolver()
+        else:
+            return cls.urlpattern
+
 
 @six.add_metaclass(RouteMetaclass)
-class Route(object):
+class Route(View):
     pass

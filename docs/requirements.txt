@@ -1,0 +1,4 @@
+sphinx
+sphinx-js
+django
+-r ../src/facond_examples/requirements.txt

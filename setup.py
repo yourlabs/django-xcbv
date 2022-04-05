@@ -24,6 +24,7 @@ setup(
             'xcbv = xcbv_examples.manage:main',
         ],
     },
+    requires=['six'],
     extras_require=dict(
         django=['django>=2.0'],
         demo=['django>=2.0'],
